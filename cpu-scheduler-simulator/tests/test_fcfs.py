@@ -21,7 +21,7 @@ class TestFCFSSimulator:
         assert simulator.cur_time == 9
         assert len(simulator.completed) == 3
 
-        assert simulator.execution_timeline == [
+        assert simulator.timeline == [
             1, 1, 1, 1, 1,
             2, 2, 2,
             3
@@ -54,7 +54,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [1, 1, 1]
+        assert simulator.timeline == [1, 1, 1]
 
         assert p1.start == 5
         assert p1.completion_time == 8
@@ -81,7 +81,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [
+        assert simulator.timeline == [
             1, 1,
             2, 2, 2
         ]
@@ -112,7 +112,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [
+        assert simulator.timeline == [
             1, 1,
             2, 2, 2, 2, 2, 2
         ]
@@ -147,7 +147,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [
+        assert simulator.timeline == [
             1, 1,
             2, 2, 2, 2, 2, 2
         ]
@@ -176,7 +176,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [1, 1, 1, 1, 1]
+        assert simulator.timeline == [1, 1, 1, 1, 1]
 
         assert [p.pid for p in simulator.completed] == [1]
 
@@ -205,7 +205,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [
+        assert simulator.timeline == [
             1, 1, 1, 1, 1,
             2
         ]

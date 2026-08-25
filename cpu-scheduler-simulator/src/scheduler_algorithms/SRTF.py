@@ -21,3 +21,6 @@ class SRTF_Scheduler(SchedulerInterface):
           
     def reset(self):
         pass
+    
+    def get_name(self):
+         return "SRTF"

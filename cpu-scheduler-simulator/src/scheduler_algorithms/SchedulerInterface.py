@@ -14,7 +14,7 @@ class SchedulerInterface(ABC):
         pass
     
     @abstractmethod
-    def should_preempt(\
+    def should_preempt(
         self,
         current_process: Process,
         ready_queue: list[Process]
@@ -25,4 +25,9 @@ class SchedulerInterface(ABC):
     @abstractmethod
     def reset(self):
         """Reset scheduler state for a new time slice/process."""
+        pass
+    
+    @abstractmethod
+    def get_name(self) -> str:
+        """Returns the scheduler name"""
         pass

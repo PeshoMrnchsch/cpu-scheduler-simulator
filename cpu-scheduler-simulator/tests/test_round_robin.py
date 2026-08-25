@@ -260,125 +260,141 @@ class TestCompleteOrder:
 
         simulator.run()
 
-        assert simulator.execution_timeline == [
-            1, 1,
-            2, 2,
-            1, 1,
-            2, 2
+        assert simulator.timeline == [
+            (0, 2, 1),
+            (2, 4, 2),
+            (4, 6, 1),
+            (6, 8, 2)
         ]
 
-
-    def test_execution_order_quantum_one(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=3)
-        p2 = Process(process_id=2, arrival_time=0, burst_time=2)
-
-        workload = Workload([p1, p2])
-        scheduler = RoundRobin_Scheduler(quantum=1)
-        simulator = Simulator(workload, scheduler)
-
-        simulator.run()
-
-        assert simulator.execution_timeline == [
-            1, 2, 1, 2, 1
-        ]
+        assert [pid for _, _, pid in simulator.timeline] == [1, 2, 1, 2]
 
 
-    def test_execution_order_process_finishes_before_quantum(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=1)
-        p2 = Process(process_id=2, arrival_time=0, burst_time=5)
+        def test_execution_order_quantum_one(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=3)
+            p2 = Process(process_id=2, arrival_time=0, burst_time=2)
 
-        workload = Workload([p1, p2])
-        scheduler = RoundRobin_Scheduler(quantum=3)
-        simulator = Simulator(workload, scheduler)
+            workload = Workload([p1, p2])
+            scheduler = RoundRobin_Scheduler(quantum=1)
+            simulator = Simulator(workload, scheduler)
 
-        simulator.run()
+            simulator.run()
 
-        assert simulator.execution_timeline == [
-            1,
-            2, 2, 2,
-            2, 2
-        ]
-
-
-    def test_execution_order_arrival_during_quantum(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=5)
-        p2 = Process(process_id=2, arrival_time=1, burst_time=2)
-
-        workload = Workload([p1, p2])
-        scheduler = RoundRobin_Scheduler(quantum=3)
-        simulator = Simulator(workload, scheduler)
-
-        simulator.run()
-
-        assert simulator.execution_timeline == [
-            1, 1, 1,
-            2, 2,
-            1, 1
-        ]
+            assert simulator.timeline == [
+                (0, 1, 1),
+                (1, 2, 2),
+                (2, 3, 1),
+                (3, 4, 2),
+                (4, 5, 1)
+            ]
 
 
-    def test_execution_order_same_arrival_time(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=2)
-        p2 = Process(process_id=2, arrival_time=0, burst_time=2)
-        p3 = Process(process_id=3, arrival_time=0, burst_time=2)
+        def test_execution_order_process_finishes_before_quantum(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=1)
+            p2 = Process(process_id=2, arrival_time=0, burst_time=5)
 
-        workload = Workload([p1, p2, p3])
-        scheduler = RoundRobin_Scheduler(quantum=1)
-        simulator = Simulator(workload, scheduler)
+            workload = Workload([p1, p2])
+            scheduler = RoundRobin_Scheduler(quantum=3)
+            simulator = Simulator(workload, scheduler)
 
-        simulator.run()
+            simulator.run()
 
-        assert simulator.execution_timeline == [
-            1, 2, 3,
-            1, 2, 3
-        ]
-
-
-    def test_execution_order_long_process_multiple_preemptions(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=7)
-        p2 = Process(process_id=2, arrival_time=0, burst_time=2)
-
-        workload = Workload([p1, p2])
-        scheduler = RoundRobin_Scheduler(quantum=2)
-        simulator = Simulator(workload, scheduler)
-
-        simulator.run()
-
-        assert simulator.execution_timeline == [
-            1, 1,
-            2, 2,
-            1, 1,
-            1, 1, 1
-        ]
+            assert simulator.timeline == [
+                (0, 1, 1),
+                (1, 4, 2),
+                (4, 6, 2)
+            ]
 
 
-    def test_execution_order_late_arrival(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=3)
-        p2 = Process(process_id=5, arrival_time=5, burst_time=2)
+        def test_execution_order_arrival_during_quantum(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=5)
+            p2 = Process(process_id=2, arrival_time=1, burst_time=2)
 
-        workload = Workload([p1, p2])
-        scheduler = RoundRobin_Scheduler(quantum=2)
-        simulator = Simulator(workload, scheduler)
+            workload = Workload([p1, p2])
+            scheduler = RoundRobin_Scheduler(quantum=3)
+            simulator = Simulator(workload, scheduler)
 
-        simulator.run()
+            simulator.run()
 
-        assert simulator.execution_timeline == [
-            1, 1, 1,
-            5, 5
-        ]
+            assert simulator.timeline == [
+                (0, 3, 1),
+                (3, 5, 2),
+                (5, 7, 1)
+            ]
 
 
-    def test_execution_timeline_contains_every_cpu_time_unit(self):
-        p1 = Process(process_id=1, arrival_time=0, burst_time=5)
-        p2 = Process(process_id=2, arrival_time=0, burst_time=3)
-        p3 = Process(process_id=3, arrival_time=1, burst_time=2)
+        def test_execution_order_same_arrival_time(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=2)
+            p2 = Process(process_id=2, arrival_time=0, burst_time=2)
+            p3 = Process(process_id=3, arrival_time=0, burst_time=2)
 
-        workload = Workload([p1, p2, p3])
-        scheduler = RoundRobin_Scheduler(quantum=2)
-        simulator = Simulator(workload, scheduler)
+            workload = Workload([p1, p2, p3])
+            scheduler = RoundRobin_Scheduler(quantum=1)
+            simulator = Simulator(workload, scheduler)
 
-        simulator.run()
+            simulator.run()
 
-        total_burst_time = 5 + 3 + 2
+            assert simulator.timeline == [
+                (0, 1, 1),
+                (1, 2, 2),
+                (2, 3, 3),
+                (3, 4, 1),
+                (4, 5, 2),
+                (5, 6, 3)
+            ]
 
-        assert len(simulator.execution_timeline) == total_burst_time
+
+        def test_execution_order_long_process_multiple_preemptions(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=7)
+            p2 = Process(process_id=2, arrival_time=0, burst_time=2)
+
+            workload = Workload([p1, p2])
+            scheduler = RoundRobin_Scheduler(quantum=2)
+            simulator = Simulator(workload, scheduler)
+
+            simulator.run()
+
+            assert simulator.timeline == [
+                (0, 2, 1),
+                (2, 4, 2),
+                (4, 6, 1),
+                (6, 9, 1)
+            ]
+
+
+        def test_execution_order_late_arrival(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=3)
+            p2 = Process(process_id=5, arrival_time=5, burst_time=2)
+
+            workload = Workload([p1, p2])
+            scheduler = RoundRobin_Scheduler(quantum=2)
+            simulator = Simulator(workload, scheduler)
+
+            simulator.run()
+
+            assert simulator.timeline == [
+                (0, 2, 1),
+                (2, 3, 1),
+                (5, 7, 5)
+            ]
+
+
+        def test_execution_timeline_contains_every_cpu_time_unit(self):
+            p1 = Process(process_id=1, arrival_time=0, burst_time=5)
+            p2 = Process(process_id=2, arrival_time=0, burst_time=3)
+            p3 = Process(process_id=3, arrival_time=1, burst_time=2)
+
+            workload = Workload([p1, p2, p3])
+            scheduler = RoundRobin_Scheduler(quantum=2)
+            simulator = Simulator(workload, scheduler)
+
+            simulator.run()
+
+            total_burst_time = 5 + 3 + 2
+
+            total_execution_time = sum(
+                end - start
+                for start, end, _ in simulator.timeline
+            )
+
+            assert total_execution_time == total_burst_time

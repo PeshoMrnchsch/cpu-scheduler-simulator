@@ -1,6 +1,7 @@
-from src.model.workload import Workload
 from src.model.process import Process, ProcessState
+from src.model.workload import Workload
 from src.scheduler_algorithms.SchedulerInterface import SchedulerInterface
+from src.metrics.result import SimulationResult
 
 class Simulator:
 
@@ -21,8 +22,14 @@ class Simulator:
 
         self.scheduler = scheduler
         
-        # TODO - Remove Testing - add to exec timeline
-        self.execution_timeline = []
+        self.timeline = []
+
+    def add_timeline_entry(self, process:Process):
+        """Helper to add a process to the timeline"""
+        if self.timeline and self.timeline[-1][2] == process.pid:
+            self.timeline[-1] = (self.timeline[-1][0], self.cur_time + 1, self.cur_process.pid)
+        else:
+            self.timeline.append((self.cur_time, self.cur_time + 1, self.cur_process.pid))
 
     def check_arrivals(self):
         """Move arrived processes from unarrived to ready queue."""
@@ -54,8 +61,8 @@ class Simulator:
         if self.cur_process is None:
             return
 
-        # TODO - Remove Testing - add to exec timeline
-        self.execution_timeline.append(self.cur_process.pid)
+        # Add to exec timeline
+        self.add_timeline_entry(self.cur_process)
         
         # Execute process
         self.cur_process.remaining_time -= 1
@@ -111,3 +118,10 @@ class Simulator:
             # CPU is idle: jump to the next arrival
             elif self.unarrived:
                 self.cur_time = self.unarrived[0].arrival_time
+        
+        return SimulationResult(
+            processes_completed=self.completed,
+            timeline= self.timeline,
+            simulation_start=0,
+            simulation_end=self.cur_time
+            )
