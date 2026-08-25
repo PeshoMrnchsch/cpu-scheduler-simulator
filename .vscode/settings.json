@@ -1,7 +1,9 @@
 {
     "python.testing.pytestArgs": [
-        "."
+        "cpu-scheduler-simulator"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "python.REPL.enableREPLSmartSend": false,
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }
