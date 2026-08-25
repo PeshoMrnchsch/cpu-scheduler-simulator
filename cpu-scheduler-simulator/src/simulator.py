@@ -1,12 +1,10 @@
-import src
 from src.model.workload import Workload
 from src.model.process import Process, ProcessState
-from src.shceduler_algorithms.FCFS import FCFSScheduler
-
+from src.scheduler_algorithms.SchedulerInterface import SchedulerInterface
 
 class Simulator:
 
-    def __init__(self, workload: Workload, scheduler: FCFSScheduler):
+    def __init__(self, workload: Workload, scheduler:SchedulerInterface):
         """Initialize simulation state and process collections."""
 
         self.cur_time = 0
@@ -21,75 +19,95 @@ class Simulator:
         # Finished processes
         self.completed = []
 
-        self.status = None
         self.scheduler = scheduler
-
+        
+        # TODO - Remove Testing - add to exec timeline
+        self.execution_timeline = []
 
     def check_arrivals(self):
         """Move arrived processes from unarrived to ready queue."""
 
-        for p in list(self.unarrived):
-            if p.arrival_time <= self.cur_time and p.state == ProcessState.NEW:
-                p.state = ProcessState.READY
-                self.ready_queue.append(p)
-                self.unarrived.remove(p)
+        for process in list(self.unarrived):
+            if (
+                process.arrival_time <= self.cur_time
+                and process.state == ProcessState.NEW
+            ):
+                process.state = ProcessState.READY
+                self.ready_queue.append(process)
+                self.unarrived.remove(process)
 
-
-    def dispatch(self, p: Process):
+    def dispatch(self, process: Process):
         """Move a selected process from READY to RUNNING."""
 
-        if p.state == ProcessState.READY:
-            p.state = ProcessState.RUNNING
+        if process.state == ProcessState.READY:
+            process.state = ProcessState.RUNNING
 
             # Record first CPU execution
-            if p.start is None:
-                p.start = self.cur_time
+            if process.start is None:
+                process.start = self.cur_time
 
-            self.cur_process = p
-
+            self.cur_process = process
 
     def step_time_unit(self):
         """Execute the current process for one time unit."""
 
-        if self.cur_process is not None:
-            self.cur_process.remaining_time -= 1
-            self.cur_time += 1
+        if self.cur_process is None:
+            return
 
-            # Handle process completion
-            if self.cur_process.remaining_time == 0:
-                self.cur_process.state = ProcessState.TERMINATED
-                self.cur_process.completion = self.cur_time
-                self.completed.append(self.cur_process)
-                self.cur_process = None
-
+        # TODO - Remove Testing - add to exec timeline
+        self.execution_timeline.append(self.cur_process.pid)
         
+        # Execute process
+        self.cur_process.remaining_time -= 1
+        self.cur_time += 1
 
+        self.scheduler.on_time_unit()
+
+        # Handle process completion
+        if self.cur_process.remaining_time == 0:
+            self.cur_process.state = ProcessState.TERMINATED
+            self.cur_process.completion_time = self.cur_time
+
+            self.completed.append(self.cur_process)
+            self.cur_process = None
+
+            self.scheduler.reset()
+
+        # Handle Preemption
+        elif self.scheduler.should_preempt():
+                self.cur_process.state = ProcessState.READY
+                self.ready_queue.append(self.cur_process)
+                self.cur_process = None
+                self.scheduler.reset()
 
     def select_next(self):
         """Ask the scheduler to select and dispatch the next process."""
 
-        if self.cur_process is None and self.ready_queue:
-            self.cur_process = self.scheduler.select_next(self.ready_queue)
-            self.ready_queue.remove(self.cur_process)
-            self.dispatch(p=self.cur_process)
+        if self.cur_process is not None or not self.ready_queue:
+            return
 
+        selected = self.scheduler.select_next(self.ready_queue)
+
+        if selected is not None:
+            self.ready_queue.remove(selected)
+            self.dispatch(selected)
 
     def run(self):
         """Run the simulation until all processes are completed."""
 
         while self.unarrived or self.ready_queue or self.cur_process:
 
-            # Move new arrivals into the ready queue
+            # Move newly arrived processes into the ready queue
             self.check_arrivals()
 
             # Select a process if CPU is free
-            self.select_next()
+            if self.cur_process == None:
+                self.select_next()
 
-            # Execute one simulation step
+            # Execute one time unit
             if self.cur_process:
                 self.step_time_unit()
-            # Handle CPU idle time
-            elif self.cur_process is None and not self.ready_queue and self.unarrived:
-                self.cur_time = self.unarrived[0].arrival_time
-                self.check_arrivals()
 
+            # CPU is idle: jump to the next arrival
+            elif self.unarrived:
+                self.cur_time = self.unarrived[0].arrival_time

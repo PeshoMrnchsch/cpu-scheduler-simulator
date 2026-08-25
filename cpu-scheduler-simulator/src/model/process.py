@@ -16,13 +16,13 @@ class Process:
         self.state = ProcessState.NEW
         self.remaining_time = self.burst_time
         self.start=None
-        self.completion=None
+        self.completion_time=None
         
     def reset(self):
         self.state = ProcessState.NEW
         self.remaining_time = self.burst_time
         self.start = None
-        self.completion = None
+        self.completion_time = None
     
     # def execute(self, time_step, current_time):
     #     """Executes a command for editing the remaining and start time"""
