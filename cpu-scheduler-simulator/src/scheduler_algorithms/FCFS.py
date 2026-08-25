@@ -15,9 +15,13 @@ class FCFS_Scheduler(SchedulerInterface):
     def on_time_unit(self):
         pass
 
-    def should_preempt(self) -> bool:
+    def should_preempt(
+        self,
+        current_process: Process,
+        ready_queue: list[Process]
+    ) -> bool:
         return False
-
+    
     def reset(self):
         pass
     
@@ -36,7 +40,7 @@ class SJF_Scheduler(SchedulerInterface):
     def on_time_unit(self):
             pass
     
-    def should_preempt(self) -> bool:
+    def should_preempt(self, current_process, ready_queue):
         return False
 
     def reset(self):

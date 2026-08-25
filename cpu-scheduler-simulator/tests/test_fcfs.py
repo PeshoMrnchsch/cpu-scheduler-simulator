@@ -18,25 +18,21 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        # Simulation
         assert simulator.cur_time == 9
         assert len(simulator.completed) == 3
 
-        # Execution order
         assert simulator.execution_timeline == [
             1, 1, 1, 1, 1,
             2, 2, 2,
             3
         ]
 
-        # Completion order
         completion_order = [p.pid for p in simulator.completed]
 
         assert completion_order == [1, 2, 3]
         assert len(completion_order) == len(set(completion_order))
         assert set(completion_order) == {1, 2, 3}
 
-        # Process metrics
         assert p1.start == 0
         assert p1.completion_time == 5
 
@@ -176,13 +172,14 @@ class TestFCFSSimulator:
         )
 
         workload = Workload([p1])
-        simulator = Simulator()
+        simulator = Simulator(workload, FCFS_Scheduler())
 
         simulator.run()
 
         assert simulator.execution_timeline == [1, 1, 1, 1, 1]
 
         assert [p.pid for p in simulator.completed] == [1]
+
         assert p1.start == 0
         assert p1.completion_time == 5
 
@@ -208,8 +205,6 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        # P2 arrives while P1 is running,
-        # but FCFS must let P1 finish first.
         assert simulator.execution_timeline == [
             1, 1, 1, 1, 1,
             2

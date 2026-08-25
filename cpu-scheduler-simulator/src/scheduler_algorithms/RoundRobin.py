@@ -27,7 +27,7 @@ class RoundRobin_Scheduler(SchedulerInterface):
         """Increment internal CPU time used in slice"""
         self.time_used_in_slice += 1
         
-    def should_preempt(self):
+    def should_preempt(self, current_process, ready_queue):
         return self.time_used_in_slice >= self.quantum
     
     def reset(self):

@@ -74,7 +74,7 @@ class Simulator:
             self.scheduler.reset()
 
         # Handle Preemption
-        elif self.scheduler.should_preempt():
+        elif self.scheduler.should_preempt(self.cur_process,self.ready_queue):
                 self.cur_process.state = ProcessState.READY
                 self.ready_queue.append(self.cur_process)
                 self.cur_process = None
