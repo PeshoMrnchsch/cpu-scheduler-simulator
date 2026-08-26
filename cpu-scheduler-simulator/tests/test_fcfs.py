@@ -22,9 +22,9 @@ class TestFCFSSimulator:
         assert len(simulator.completed) == 3
 
         assert simulator.timeline == [
-            1, 1, 1, 1, 1,
-            2, 2, 2,
-            3
+            (0, 5, 1),
+            (5, 8, 2),
+            (8, 9, 3)
         ]
 
         completion_order = [p.pid for p in simulator.completed]
@@ -54,7 +54,10 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [1, 1, 1]
+        assert simulator.timeline == [
+            (0, 5, None),
+            (5, 8, 1)
+        ]
 
         assert p1.start == 5
         assert p1.completion_time == 8
@@ -82,8 +85,9 @@ class TestFCFSSimulator:
         simulator.run()
 
         assert simulator.timeline == [
-            1, 1,
-            2, 2, 2
+            (0, 2, 1),
+            (2, 10, None),
+            (10, 13, 2)
         ]
 
         assert p1.start == 0
@@ -113,8 +117,8 @@ class TestFCFSSimulator:
         simulator.run()
 
         assert simulator.timeline == [
-            1, 1,
-            2, 2, 2, 2, 2, 2
+            (0, 2, 1),
+            (2, 8, 2)
         ]
 
         assert p1.start == 0
@@ -148,8 +152,8 @@ class TestFCFSSimulator:
         simulator.run()
 
         assert simulator.timeline == [
-            1, 1,
-            2, 2, 2, 2, 2, 2
+            (0, 2, 1),
+            (2, 8, 2)
         ]
 
         assert p1.start == 0
@@ -176,7 +180,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [1, 1, 1, 1, 1]
+        assert simulator.timeline == [(0, 5, 1)]
 
         assert [p.pid for p in simulator.completed] == [1]
 
@@ -206,8 +210,8 @@ class TestFCFSSimulator:
         simulator.run()
 
         assert simulator.timeline == [
-            1, 1, 1, 1, 1,
-            2
+            (0, 5, 1),
+            (5, 6, 2)
         ]
 
         assert p1.completion_time == 5

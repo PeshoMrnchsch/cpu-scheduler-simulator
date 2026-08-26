@@ -31,6 +31,13 @@ class Simulator:
         else:
             self.timeline.append((self.cur_time, self.cur_time + 1, self.cur_process.pid))
 
+    def add_idle_timeline_entry(self, end_time: int):
+        """Record the interval while the CPU waits for the next arrival."""
+        if self.timeline and self.timeline[-1][2] is None:
+            self.timeline[-1] = (self.timeline[-1][0], end_time, None)
+        else:
+            self.timeline.append((self.cur_time, end_time, None))
+
     def check_arrivals(self):
         """Move arrived processes from unarrived to ready queue."""
 
@@ -117,7 +124,9 @@ class Simulator:
 
             # CPU is idle: jump to the next arrival
             elif self.unarrived:
-                self.cur_time = self.unarrived[0].arrival_time
+                next_arrival = self.unarrived[0].arrival_time
+                self.add_idle_timeline_entry(next_arrival)
+                self.cur_time = next_arrival
         
         return SimulationResult(
             processes_completed=self.completed,
