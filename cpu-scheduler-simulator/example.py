@@ -29,7 +29,10 @@ def main():
 
     for algorithm, data in comparison_results.items():
         print(f"\n{algorithm}")
-        GanttChart(data["result"].timeline).render()
+        print("CPU:")
+        GanttChart(data["result"].cpu_timeline, "cpu").render()
+        print("I/O:")
+        GanttChart(data["result"].io_timeline, "io").render()
 
 
 if __name__ == "__main__":

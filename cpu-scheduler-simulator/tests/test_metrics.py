@@ -2,6 +2,7 @@ import pytest
 
 from src.model.process import Process
 from src.metrics.metrics import Metrics
+from src.metrics.result import SimulationResult
 
 
 class TestMetrics:
@@ -10,7 +11,8 @@ class TestMetrics:
         p1 = Process(1, 0, 5)
         p1.completion_time = 5
 
-        metrics = Metrics([p1], 0, 5)
+        result = SimulationResult([p1], 0, 5, [])
+        metrics = Metrics(result)
 
         assert metrics.turnaround_time(p1) == 5
 
@@ -18,7 +20,8 @@ class TestMetrics:
         p1 = Process(1, 0, 5)
         p1.completion_time = 8
 
-        metrics = Metrics([p1], 0, 8)
+        result = SimulationResult([p1], 0, 8, [])
+        metrics = Metrics(result)
 
         assert metrics.waiting_time(p1) == 3
 
@@ -29,7 +32,8 @@ class TestMetrics:
         p1.completion_time = 5
         p2.completion_time = 8
 
-        metrics = Metrics([p1, p2], 0, 8)
+        result = SimulationResult([p1, p2], 0, 8, [])
+        metrics = Metrics(result)
 
         assert metrics.average_turnaround_time() == 6.5
 
@@ -40,29 +44,34 @@ class TestMetrics:
         p1.completion_time = 5
         p2.completion_time = 8
 
-        metrics = Metrics([p1, p2], 0, 8)
+        result = SimulationResult([p1, p2], 0, 8, [])
+        metrics = Metrics(result)
 
         assert metrics.average_waiting_time() == 2.5
 
     def test_empty_processes(self):
-        metrics = Metrics([], 0, 0)
+        result = SimulationResult([], 0, 0, [])
+        metrics = Metrics(result)
 
         assert metrics.average_turnaround_time() == 0.0
         assert metrics.average_waiting_time() == 0.0
 
     def test_cpu_utilization(self):
-        timeline = [
+        cpu_timeline = [
             (0, 3, 1),
             (3, 5, None),
             (5, 8, 2)
         ]
+        io_timeline = [(0, 8, 1)]
 
-        metrics = Metrics([], 0, 8, timeline)
+        result = SimulationResult([], 0, 8, cpu_timeline, io_timeline)
+        metrics = Metrics(result)
 
         assert metrics.cpu_utilization() == 75.0
 
     def test_cpu_utilization_no_time(self):
-        metrics = Metrics([], 0, 0, [])
+        result = SimulationResult([], 0, 0, [])
+        metrics = Metrics(result)
 
         assert metrics.cpu_utilization() == 0.0
 
@@ -74,7 +83,8 @@ class TestMetrics:
             (0, 5, 1)
         ]
 
-        metrics = Metrics([p1], 0, 5, timeline)
+        result = SimulationResult([p1], 0, 5, timeline)
+        metrics = Metrics(result)
 
         result = metrics.calculate()
 

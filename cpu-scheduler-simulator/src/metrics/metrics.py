@@ -46,7 +46,7 @@ class Metrics:
 
         busy_time = sum(
             end - start
-            for start, end, process in self.result.timeline
+            for start, end, process in self.result.cpu_timeline
             if process is not None
         )
 

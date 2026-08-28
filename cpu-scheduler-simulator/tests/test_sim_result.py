@@ -38,6 +38,16 @@ class TestSimulationResult:
 
         assert result.timeline == timeline
 
+    def test_stores_cpu_and_io_timelines_independently(self):
+        cpu_timeline = [(0, 3, 1)]
+        io_timeline = [(1, 4, 1)]
+
+        result = SimulationResult([], 0, 4, cpu_timeline, io_timeline)
+
+        assert result.cpu_timeline == cpu_timeline
+        assert result.io_timeline == io_timeline
+        assert result.timeline is result.cpu_timeline
+
     def test_empty_process_list(self):
         result = SimulationResult([], 0, 0, [])
 

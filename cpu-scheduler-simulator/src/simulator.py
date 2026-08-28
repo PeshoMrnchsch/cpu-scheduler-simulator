@@ -2,10 +2,18 @@ from src.model.process import Process, ProcessState
 from src.model.workload import Workload
 from src.scheduler_algorithms.SchedulerInterface import SchedulerInterface
 from src.metrics.result import SimulationResult
+from src.devices.io_device import IODevice
 
 class Simulator:
+    """Coordinate one simulation clock and all per-tick state transitions.
 
-    def __init__(self, workload: Workload, scheduler:SchedulerInterface):
+    A simulation tick represents the interval from time ``t`` to ``t + 1``.
+    During that interval the CPU and each active I/O device execute one unit.
+    At the tick boundary, I/O completions are handled before the next CPU
+    scheduling decision. Only this class advances ``cur_time``.
+    """
+
+    def __init__(self, workload: Workload, scheduler:SchedulerInterface, io_device:IODevice | None = None):
         """Initialize simulation state and process collections."""
 
         self.cur_time = 0
@@ -22,21 +30,49 @@ class Simulator:
 
         self.scheduler = scheduler
         
-        self.timeline = []
+        self.cpu_timeline = []
+        self.io_timeline = []
+        
+        # IO Device
+        self.io_device = io_device
+        
+        if workload.has_io() and io_device is None:
+            raise ValueError(
+                "An I/O device is required when the workload contains I/O requests."
+            )
 
-    def add_timeline_entry(self, process:Process):
+    def add_cpu_timeline_entry(self, process:Process):
         """Helper to add a process to the timeline"""
-        if self.timeline and self.timeline[-1][2] == process.pid:
-            self.timeline[-1] = (self.timeline[-1][0], self.cur_time + 1, self.cur_process.pid)
+        if self.cpu_timeline and self.cpu_timeline[-1][2] == process.pid:
+            self.cpu_timeline[-1] = (self.cpu_timeline[-1][0], self.cur_time + 1, self.cur_process.pid)
         else:
-            self.timeline.append((self.cur_time, self.cur_time + 1, self.cur_process.pid))
+            self.cpu_timeline.append((self.cur_time, self.cur_time + 1, self.cur_process.pid))
+            
+    def add_io_timeline_entry(self, request):
+        entry = (
+            self.cur_time,
+            self.cur_time + 1,
+            request.process.pid,
+            request.device.device_id,
+        )
+
+        if self.io_timeline and self.io_timeline[-1][2:] == entry[2:]:
+            self.io_timeline[-1] = (
+                self.io_timeline[-1][0],
+                entry[1],
+                *entry[2:],
+            )
+        else:
+            self.io_timeline.append(entry)
 
     def add_idle_timeline_entry(self, end_time: int):
         """Record the interval while the CPU waits for the next arrival."""
-        if self.timeline and self.timeline[-1][2] is None:
-            self.timeline[-1] = (self.timeline[-1][0], end_time, None)
+        if self.cpu_timeline and self.cpu_timeline[-1][2] is None:
+            self.cpu_timeline[-1] = (self.cpu_timeline[-1][0], end_time, None)
         else:
-            self.timeline.append((self.cur_time, end_time, None))
+            idle_start = self.cpu_timeline[-1][1] if self.cpu_timeline else self.cur_time
+            if idle_start < end_time:
+                self.cpu_timeline.append((idle_start, end_time, None))
 
     def check_arrivals(self):
         """Move arrived processes from unarrived to ready queue."""
@@ -69,18 +105,26 @@ class Simulator:
             return
 
         # Add to exec timeline
-        self.add_timeline_entry(self.cur_process)
+        self.add_cpu_timeline_entry(self.cur_process)
         
         # Execute process
         self.cur_process.remaining_time -= 1
-        self.cur_time += 1
-
+        
+        # Checks if process reach I/O point
+        if self.cur_process.should_request_io():
+            request = self.cur_process.start_io()
+            self.cur_process.state = ProcessState.IO_WAIT
+            request.device.enqueue(request)
+            self.cur_process = None
+            self.scheduler.reset()
+            return
+        
         self.scheduler.on_time_unit()
 
         # Handle process completion
         if self.cur_process.remaining_time == 0:
             self.cur_process.state = ProcessState.TERMINATED
-            self.cur_process.completion_time = self.cur_time
+            self.cur_process.completion_time = self.cur_time + 1
 
             self.completed.append(self.cur_process)
             self.cur_process = None
@@ -106,31 +150,86 @@ class Simulator:
             self.ready_queue.remove(selected)
             self.dispatch(selected)
 
-    def run(self):
-        """Run the simulation until all processes are completed."""
+    def process_arrivals(self):
+        """Process all processes that have arrived at the current time."""
+        self.check_arrivals()
 
-        while self.unarrived or self.ready_queue or self.cur_process:
+    def process_io(self):
+        """Advance the I/O device by one time unit."""
+        if self.io_device is None:
+            return None
 
-            # Move newly arrived processes into the ready queue
-            self.check_arrivals()
-
-            # Select a process if CPU is free
-            if self.cur_process == None:
-                self.select_next()
-
-            # Execute one time unit
-            if self.cur_process:
-                self.step_time_unit()
-
-            # CPU is idle: jump to the next arrival
-            elif self.unarrived:
-                next_arrival = self.unarrived[0].arrival_time
-                self.add_idle_timeline_entry(next_arrival)
-                self.cur_time = next_arrival
+        active_request = self.io_device.get_active_request()
         
+        if active_request is None and self.io_device.has_pending():
+            self.io_device.start_next()
+            active_request = self.io_device.get_active_request()
+        
+        if active_request is not None:
+            self.add_io_timeline_entry(active_request)
+            
+    def handle_io_completions(self, completed_request):
+        """Move a process whose I/O completed back to the ready queue."""
+        if completed_request is None:
+            return
+
+        process = completed_request.process
+        process.finish_io()
+        process.state = ProcessState.READY
+        self.ready_queue.append(process)
+
+    def schedule_cpu(self):
+        """Select the next process for CPU execution."""
+        self.select_next()
+
+    def execute_cpu(self):
+        """Execute the selected process for one time unit."""
+        self.step_time_unit()
+
+    def advance_time(self):
+        """Record an idle CPU unit when needed, then advance one tick."""
+        has_active_io = (
+            self.io_device is not None
+            and (
+                self.io_device.is_busy()
+                or self.io_device.has_pending()
+            )
+        )
+
+        if self.cur_process is None and not self.ready_queue and (
+            self.unarrived or has_active_io
+        ):
+            self.add_idle_timeline_entry(self.cur_time + 1)
+
+        self.cur_time += 1
+
+    def run(self):
+        """`Run the simulation until all processes are completed."""
+
+        while (
+            self.unarrived
+            or self.ready_queue
+            or self.cur_process
+            or (
+                self.io_device is not None
+                and (
+                    self.io_device.is_busy()
+                    or self.io_device.has_pending()
+                )
+            )
+        ):
+
+            self.process_arrivals()
+            completed_request = self.process_io()
+            self.handle_io_completions(completed_request)
+            self.schedule_cpu()
+            self.execute_cpu()
+            self.advance_time()
+
         return SimulationResult(
             processes_completed=self.completed,
-            timeline= self.timeline,
+            cpu_timeline=self.cpu_timeline,
+            io_timeline=self.io_timeline,
             simulation_start=0,
             simulation_end=self.cur_time
-            )
+        )
