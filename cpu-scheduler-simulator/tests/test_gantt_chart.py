@@ -1,4 +1,11 @@
 from src.visualization.gantt_chart import GanttChart
+from src.model.process import Process
+from src.model.workload import Workload
+from src.scheduler_algorithms.RoundRobin import RoundRobin_Scheduler
+from src.scheduler_algorithms.FCFS import FCFS_Scheduler
+from src.scheduler_algorithms.SJF import SJF_Scheduler
+from src.scheduler_algorithms.SRTF import SRTF_Scheduler
+from src.simulator import Simulator
 
 
 def test_cpu_entries_render_correctly():
@@ -54,3 +61,28 @@ def test_missing_io_time_is_rendered_as_an_idle_gap():
     chart = GanttChart([(0, 1, 1, 0), (3, 4, 2, 1)], "io")
 
     assert "IDLE" in chart.build_blocks()
+
+
+def test_round_robin_cpu_timeline_renders_time_slices():
+    workload = Workload([
+        Process(process_id=1, arrival_time=0, burst_time=5),
+        Process(process_id=2, arrival_time=0, burst_time=3),
+    ])
+    simulatorRR = Simulator(workload, FCFS_Scheduler())
+    simulatorFcfs = Simulator(workload, RoundRobin_Scheduler(quantum=2))
+    simulatorRR = Simulator(workload, RoundRobin_Scheduler(quantum=2))
+    simulatorRR = Simulator(workload, RoundRobin_Scheduler(quantum=2))
+
+    result = simulatorRR.run()
+    chart = GanttChart(result.cpu_timeline, "cpu")
+
+    assert result.cpu_timeline == [
+        (0, 2, 1),
+        (2, 4, 2),
+        (4, 6, 1),
+        (6, 7, 2),
+        (7, 8, 1),
+    ]
+    assert "P1" in chart.build_blocks()
+    assert "P2" in chart.build_blocks()
+    assert chart.build_time_labels().endswith("8")
