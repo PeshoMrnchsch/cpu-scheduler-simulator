@@ -260,14 +260,14 @@ class TestCompleteOrder:
 
         simulator.run()
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 2, 1),
             (2, 4, 2),
             (4, 6, 1),
             (6, 8, 2)
         ]
 
-        assert [pid for _, _, pid in simulator.timeline] == [1, 2, 1, 2]
+        assert [pid for _, _, pid in simulator.cpu_timeline] == [1, 2, 1, 2]
 
 
         def test_execution_order_quantum_one(self):
@@ -280,7 +280,7 @@ class TestCompleteOrder:
 
             simulator.run()
 
-            assert simulator.timeline == [
+            assert simulator.cpu_timeline == [
                 (0, 1, 1),
                 (1, 2, 2),
                 (2, 3, 1),
@@ -299,7 +299,7 @@ class TestCompleteOrder:
 
             simulator.run()
 
-            assert simulator.timeline == [
+            assert simulator.cpu_timeline == [
                 (0, 1, 1),
                 (1, 4, 2),
                 (4, 6, 2)
@@ -316,7 +316,7 @@ class TestCompleteOrder:
 
             simulator.run()
 
-            assert simulator.timeline == [
+            assert simulator.cpu_timeline == [
                 (0, 3, 1),
                 (3, 5, 2),
                 (5, 7, 1)
@@ -334,7 +334,7 @@ class TestCompleteOrder:
 
             simulator.run()
 
-            assert simulator.timeline == [
+            assert simulator.cpu_timeline == [
                 (0, 1, 1),
                 (1, 2, 2),
                 (2, 3, 3),
@@ -354,7 +354,7 @@ class TestCompleteOrder:
 
             simulator.run()
 
-            assert simulator.timeline == [
+            assert simulator.cpu_timeline == [
                 (0, 2, 1),
                 (2, 4, 2),
                 (4, 6, 1),
@@ -372,7 +372,7 @@ class TestCompleteOrder:
 
             simulator.run()
 
-            assert simulator.timeline == [
+            assert simulator.cpu_timeline == [
                 (0, 2, 1),
                 (2, 3, 1),
                 (5, 7, 5)
@@ -394,7 +394,7 @@ class TestCompleteOrder:
 
             total_execution_time = sum(
                 end - start
-                for start, end, _ in simulator.timeline
+                for start, end, _ in simulator.cpu_timeline
             )
 
             assert total_execution_time == total_burst_time

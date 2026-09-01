@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from src.model.process import Process, ProcessState
+from src.model.process import Process
 
 class SchedulerInterface(ABC):
 

@@ -21,7 +21,7 @@ class TestFCFSSimulator:
         assert simulator.cur_time == 9
         assert len(simulator.completed) == 3
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 5, 1),
             (5, 8, 2),
             (8, 9, 3)
@@ -54,7 +54,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 5, None),
             (5, 8, 1)
         ]
@@ -84,7 +84,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 2, 1),
             (2, 10, None),
             (10, 13, 2)
@@ -116,7 +116,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 2, 1),
             (2, 8, 2)
         ]
@@ -151,7 +151,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 2, 1),
             (2, 8, 2)
         ]
@@ -180,7 +180,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [(0, 5, 1)]
+        assert simulator.cpu_timeline == [(0, 5, 1)]
 
         assert [p.pid for p in simulator.completed] == [1]
 
@@ -209,7 +209,7 @@ class TestFCFSSimulator:
 
         simulator.run()
 
-        assert simulator.timeline == [
+        assert simulator.cpu_timeline == [
             (0, 5, 1),
             (5, 6, 2)
         ]

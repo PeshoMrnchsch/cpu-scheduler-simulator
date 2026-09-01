@@ -17,9 +17,9 @@ def test_add_timeline_entry_first_process():
     simulator.cur_time = 0
     simulator.cur_process = p1
 
-    simulator.add_timeline_entry(p1)
-    print(*simulator.timeline)
-    assert simulator.timeline == [
+    simulator.add_cpu_timeline_entry(p1)
+    print(*simulator.cpu_timeline)
+    assert simulator.cpu_timeline == [
         (0, 1, 1)
     ]
 
@@ -31,17 +31,17 @@ def test_add_timeline_entry_extends_same_process():
 
     simulator.cur_time = 0
     simulator.cur_process = p1
-    simulator.add_timeline_entry(p1)
+    simulator.add_cpu_timeline_entry(p1)
 
     simulator.cur_time = 1
     simulator.cur_process = p1
-    simulator.add_timeline_entry(p1)
+    simulator.add_cpu_timeline_entry(p1)
 
     simulator.cur_time = 2
     simulator.cur_process = p1
-    simulator.add_timeline_entry(p1)
+    simulator.add_cpu_timeline_entry(p1)
 
-    assert simulator.timeline == [
+    assert simulator.cpu_timeline == [
         (0, 3, 1)
     ]
 
@@ -54,17 +54,20 @@ def test_add_timeline_entry_new_process():
 
     simulator.cur_time = 0
     simulator.cur_process = p1
-    simulator.add_timeline_entry(p1)
+    simulator.add_cpu_timeline_entry(p1)
 
     simulator.cur_time = 1
     simulator.cur_process = p1
-    simulator.add_timeline_entry(p1)
+    simulator.add_cpu_timeline_entry(p1)
 
     simulator.cur_time = 2
     simulator.cur_process = p2
-    simulator.add_timeline_entry(p2)
+    simulator.add_cpu_timeline_entry(p2)
 
-    assert simulator.timeline == [
+    assert simulator.cpu_timeline == [
         (0, 2, 1),
         (2, 3, 2)
     ]
+    
+    
+    

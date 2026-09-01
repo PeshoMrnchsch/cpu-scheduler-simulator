@@ -1,11 +1,9 @@
 from copy import deepcopy
 
-from src.model.process import Process
 from src.simulator import Simulator
 from src.model.workload import Workload
 from src.scheduler_algorithms.SchedulerInterface import SchedulerInterface
 from src.metrics.metrics import Metrics
-from src.metrics.result import SimulationResult
 
 
 class Comparison:
