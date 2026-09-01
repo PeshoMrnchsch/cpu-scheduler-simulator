@@ -132,7 +132,7 @@ Located in `src/visualization/`, this layer displays:
 Clone the repository and enter the project directory:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/PeshoMrnchsch/cpu-scheduler-simulator.git
 cd Schedscope/cpu-scheduler-simulator
 ```
 
@@ -162,7 +162,7 @@ python -m src.gui.main_window
 Clone the repository and enter the project directory:
 
 ```powershell
-git clone <repository-url>
+git clone https://github.com/PeshoMrnchsch/cpu-scheduler-simulator.git
 cd Schedscope\cpu-scheduler-simulator
 ```
 
@@ -192,3 +192,17 @@ If PowerShell blocks script activation, run the application directly instead:
 ```powershell
 .\.venv\Scripts\python.exe -m src.gui.main_window
 ```
+
+## Screenshots
+
+### Main Window
+
+![Main application window](screenshots/Screenshot_1.png)
+
+### Configured Simulation
+
+![Configured Simulation](screenshots/Screenshot_2.png)
+
+### Results + Gantt chart
+
+![Gantt chart](screenshots/Screenshot_3.png)
