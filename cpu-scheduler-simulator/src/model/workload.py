@@ -1,5 +1,4 @@
-from .process import Process,ProcessState
-from src.model.io_request import IORequest
+from .process import Process
 
 class Workload:
     def __init__(self, processes : list[Process]):

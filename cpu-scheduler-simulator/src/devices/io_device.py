@@ -1,5 +1,3 @@
-from abc import ABC, abstractmethod
-
 from src.model.io_request import IORequest
 from src.devices.io_device_queue import IODeviceQueue
 

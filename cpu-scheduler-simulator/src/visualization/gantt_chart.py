@@ -8,6 +8,14 @@ class GanttChart:
         self.results = result
         self.type_result = type_result
 
+    @staticmethod
+    def _process_label(pid):
+        if pid is None:
+            return "IDLE"
+
+        process_id = str(pid)
+        return process_id.upper() if process_id.lower().startswith("p") else f"P{process_id}"
+
     def _timeline_with_gaps(self):
         intervals = []
         previous_end = None
@@ -31,9 +39,9 @@ class GanttChart:
 
         if self.type_result == "io":
             device_id = interval[3]
-            label = "IDLE" if device_id is None else f"P{pid} / D{device_id}"
+            label = "IDLE" if device_id is None else f"{self._process_label(pid)} / D{device_id}"
         else:
-            label = "IDLE" if pid is None else f"P{pid}"
+            label = self._process_label(pid)
 
         width = max(duration * self.UNIT_WIDTH, len(label) + 2)
         return label, width
@@ -60,6 +68,115 @@ class GanttChart:
 
         return labels
 
+    def draw(self, ax):
+        """Draw the Gantt chart on the provided Matplotlib axes. - For pyside6"""
+
+        if not self.results:
+            ax.text(
+                0.5,
+                0.5,
+                "No simulation results",
+                ha="center",
+                va="center",
+                transform=ax.transAxes
+            )
+            ax.set_axis_off()
+            return
+
+        intervals = self._timeline_with_gaps()
+
+        simulation_start = min(
+            interval[0] for interval in intervals
+        )
+
+        simulation_end = max(
+            interval[1] for interval in intervals
+        )
+
+        ax.set_xlim(simulation_start, simulation_end)
+        ax.set_ylim(-0.2, 1)
+
+        ax.set_yticks([])
+        ax.set_xlabel("")
+        ax.grid(
+            axis="x",
+            linestyle="--",
+            alpha=0.4
+        )
+
+        if self.type_result == "cpu":
+
+            for start, end, pid in intervals:
+
+                label = self._process_label(pid)
+
+                color = (
+                    "lightgray"
+                    if pid is None
+                    else "cornflowerblue"
+                )
+
+                ax.add_patch(
+                    Rectangle(
+                        (start, 0),
+                        end - start,
+                        0.8,
+                        facecolor=color,
+                        edgecolor="black"
+                    )
+                )
+
+                ax.text(
+                    (start + end) / 2,
+                    0.4,
+                    label,
+                    ha="center",
+                    va="center"
+                )
+
+        elif self.type_result == "io":
+
+            for start, end, pid, device_id in intervals:
+
+                label = (
+                    "IDLE"
+                    if device_id is None
+                    else f"{self._process_label(pid)} / D{device_id}"
+                )
+
+                color = (
+                    "lightgray"
+                    if device_id is None
+                    else "cornflowerblue"
+                )
+
+                ax.add_patch(
+                    Rectangle(
+                        (start, 0),
+                        end - start,
+                        0.8,
+                        facecolor=color,
+                        edgecolor="black"
+                    )
+                )
+
+                ax.text(
+                    (start + end) / 2,
+                    0.4,
+                    label,
+                    ha="center",
+                    va="center"
+                )
+
+        ax.set_xticks(
+            sorted(
+                set(
+                    [interval[0] for interval in intervals]
+                    + [interval[1] for interval in intervals]
+                )
+            )
+        )
+    
     def render(self):
         if not self.results:
             print("No processes were executed.")
@@ -87,7 +204,7 @@ class GanttChart:
         
         if self.type_result == "cpu":
             for start, end, pid in self.results:
-                label = "IDLE" if pid is None else f"P{pid}"
+                label = self._process_label(pid)
                 color = "lightgray" if pid is None else "cornflowerblue"
 
                 ax.add_patch(
@@ -109,27 +226,6 @@ class GanttChart:
                 )
 
         plt.show()
-        # elif self.type_result == "io":
-        #     for start, end, pid, device_id in result.io_timeline:
-        #         row = device_id + 1
-
-        #         ax.add_patch(
-        #             Rectangle(
-        #                 (start, row),
-        #                 end - start,
-        #                 0.8,
-        #                 facecolor="seagreen",
-        #                 edgecolor="black"
-        #             )
-        #         )
-
-        #         ax.text(
-        #             (start + end) / 2,
-        #             row + 0.4,
-        #             f"P{pid}",
-        #             ha="center",
-        #             va="center"
-        #         )
             
 timeline = [
     (0, 3, 1),

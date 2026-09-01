@@ -167,6 +167,8 @@ class Simulator:
         
         if active_request is not None:
             self.add_io_timeline_entry(active_request)
+
+        return self.io_device.step()
             
     def handle_io_completions(self, completed_request):
         """Move a process whose I/O completed back to the ready queue."""

@@ -102,7 +102,3 @@ class Process:
     def __repr__(self):
         return f"Process (P{self.pid}, State={self.state.name}, Rem={self.remaining_time}/{self.burst_time})"
     
-    
-    
-process1 = Process(process_id=11, arrival_time=0, burst_time=5)
-print(process1) 

@@ -7,7 +7,7 @@ from src.scheduler_algorithms.FCFS import FCFS_Scheduler
 from src.scheduler_algorithms.RoundRobin import RoundRobin_Scheduler
 from src.scheduler_algorithms.SJF import SJF_Scheduler
 from src.scheduler_algorithms.SRTF import SRTF_Scheduler
-from src.visualization.comparison_visualiser import ComparisonVisualizer
+from src.visualization.comparison_visualiser import SimulationReportVisualizer
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     ]
 
     results = Comparison(workload, algorithms).compare()
-    ComparisonVisualizer(results).show()
+    SimulationReportVisualizer(results).show()
 
 
 if __name__ == "__main__":
